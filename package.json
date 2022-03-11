@@ -10,5 +10,8 @@
     "fluent-ffmpeg": "^2.1.2",
     "serverless-http": "^2.7.0",
     "uuid": "^8.3.2"
+  },
+  "scripts": {
+    "test": "cd tests && newman run postman.json && cd .."
   }
 }
