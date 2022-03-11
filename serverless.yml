@@ -1,0 +1,34 @@
+org: nevillejostoptal
+app: music-trimmer
+service: music-trimmer
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+        - s3:DeleteObject
+        - s3:ListBucket
+      Resource:
+        - "arn:aws:s3:::${param:bucket}"
+        - "arn:aws:s3:::${param:bucket}/*"
+
+functions:
+  api:
+    handler: app/api/index.handler
+    events:
+      - httpApi: '*'
+    environment:
+      BUCKET_NAME: ${param:bucket}
+  trimmer:
+    handler: app/workers/trimmer.handler
+    events:
+      - s3:
+          bucket: ${param:bucket}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploads/

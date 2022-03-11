@@ -1,0 +1,311 @@
+{
+	"info": {
+		"_postman_id": "c65db460-5f37-4af0-a07a-695d7f3edd31",
+		"name": "Emastered Neville Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Retrieve Processed File List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(Array.isArray(jsonData))",
+							"    pm.collectionVariables.set(\"STARTING_LIST_LENGTH\", jsonData.length);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://vdaoaey0bb.execute-api.us-east-1.amazonaws.com/processed/list",
+					"protocol": "https",
+					"host": [
+						"vdaoaey0bb",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"processed",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Upload URL",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful GET request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.url).to.include('s3.amazonaws.com')",
+							"    pm.collectionVariables.set(\"UPLOAD_URL\", jsonData.url);",
+							"    pm.collectionVariables.set(\"UPLOAD_KEY\", jsonData.url.split('/')[4].split('?')[0])",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://vdaoaey0bb.execute-api.us-east-1.amazonaws.com/upload",
+					"protocol": "https",
+					"host": [
+						"vdaoaey0bb",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload File",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "audio/mpeg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": "sample-15s.mp3"
+					}
+				},
+				"url": {
+					"raw": "{{UPLOAD_URL}}",
+					"host": [
+						"{{UPLOAD_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Upload Succeeded",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Ensure upload made it through\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    let foundMatch = false",
+							"    for (const link of jsonData) {",
+							"        if (link.includes(pm.collectionVariables.get('UPLOAD_KEY'))){",
+							"            foundMatch = true",
+							"            break",
+							"        }",
+							"    }",
+							"    pm.expect(foundMatch).to.equal(true)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://vdaoaey0bb.execute-api.us-east-1.amazonaws.com/uploads/list",
+					"protocol": "https",
+					"host": [
+						"vdaoaey0bb",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"uploads",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recheck Processed File List",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"setTimeout(function(){}, [10000]);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"File list has additional entry\", function() {",
+							"    var jsonData = pm.response.json();",
+							"",
+							"    pm.expect(jsonData.length).to.equal(pm.collectionVariables.get(\"STARTING_LIST_LENGTH\") + 1)",
+							"",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://vdaoaey0bb.execute-api.us-east-1.amazonaws.com/processed/list",
+					"protocol": "https",
+					"host": [
+						"vdaoaey0bb",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"processed",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Original Upload Deleted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Ensure original upload is deleted\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    let foundMatch = false",
+							"    for (const link of jsonData) {",
+							"        if (link.includes(pm.collectionVariables.get('UPLOAD_KEY'))){",
+							"            foundMatch = true",
+							"            break",
+							"        }",
+							"    }",
+							"    pm.expect(foundMatch).to.equal(false)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://vdaoaey0bb.execute-api.us-east-1.amazonaws.com/uploads/list",
+					"protocol": "https",
+					"host": [
+						"vdaoaey0bb",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"uploads",
+						"list"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "UPLOAD_URL",
+			"value": ""
+		},
+		{
+			"key": "STARTING_LIST_LENGTH",
+			"value": ""
+		},
+		{
+			"key": "UPLOAD_KEY",
+			"value": ""
+		}
+	]
+}

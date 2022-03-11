@@ -1,0 +1,14 @@
+{
+  "name": "music-trimmer",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "aws-sdk": "^2.1090.0",
+    "express": "^4.17.1",
+    "ffmpeg": "^0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "serverless-http": "^2.7.0",
+    "uuid": "^8.3.2"
+  }
+}
